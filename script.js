@@ -27,10 +27,32 @@ renderBtn.addEventListener("click", () => {
   // Build chart config based on type
   const config = buildConfig("doughnut", { month, budget, metric });
 
-  currentChart = new Chart(canvas, config);
 });
 
-function doughnutDiffCosts(month, budget) {
+const config = buildConfig("doughnut", { month, budget, metric });
+const data = {
+  labels: regionSums ? Object.keys(regionSums) : [],
+  datasets: [{
+      label: "Revenue (USD)",
+      data: [10, 20, 30], // Initial data
+      borderColor: 'rgb(75, 192, 192)',
+      tension: 0.1
+  }]
+};
+const config = {
+  type: 'doughnut',
+  data: data,
+  options: {
+      scales: {
+          y: {
+              beginAtZero: true
+          }
+      }
+  }
+};
+const currentChart = new Chart(canvas, config);
+
+function updateChartData(month, budget) {
   const rows = getRowsForbudget(budget).filter(r => r.month === month);
 
   const regionSums = rows.reduce((acc, r) => {
@@ -56,3 +78,5 @@ function doughnutDiffCosts(month, budget) {
     }
   };
 }
+
+setInterval(updateChartData, 2000)
