@@ -4,6 +4,11 @@
     --pri: #0A59A4; /* Primary color */
     --sec: #FFFFFF; /* secondary color */
     --font: 'Roboto Condensed', sans-serif; /* Main font */
+    --student-payment-color: #8979FF;
+    --housing-rent-color: #FF928A;
+    --essentials-water-color: #3CC3DF;
+    --lifestyle-food-color: #FFAE4C;
+    --future-monthly-color: #537FF1;
 }
 
 * {

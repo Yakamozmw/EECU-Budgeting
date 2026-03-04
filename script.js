@@ -1,82 +1,85 @@
 // --- DOM Elements ---
 
-
-
 // --- Chart Loading ---
-const canvas = document.getElementById("pieChart");
+const canvas = document.getElementById('pieChart');
+const occuSelect = document.getElementById('occu');
+const incomeInput = document.getElementById('income');
+const taxIncomeInput = document.getElementById('tax-income');
+const studentLoansInput = document.getElementById('student-loans');
+const housingInput = document.getElementById('housing');
+const essentialsInput = document.getElementById('essentials');
+const lifestyleInput = document.getElementById('lifestyle')
+const futureInput = document.getElementById('future')
+
 let currentChart = null;
-// --- Populate dropdowns from data ---
-const months = [...new Set(chartData.map(r => r.month))];
-const budgets = [...new Set(chartData.map(r => r.budget))];
 
-months.forEach(m => monthselect.add(new Option(m, m)));
-budgets.forEach(h => budgetSelect.add(new Option(h, h)));
+// Helper: parse float with fallback
+function toNumber(el, fallback = 0) {
+  if (!el) return fallback;
+  const v = parseFloat(el.value.replace(/[^0-9.\-]/g, ''));
+  return Number.isFinite(v) ? v : fallback;
+}
 
-monthselect.value = months[0];
-budgetSelect.value = budgets[0];
+// Build chart config from current input values
+function buildChartConfig() {
+  const income = toNumber(incomeInput, 5000);
+  const taxIncome = toNumber(taxIncomeInput, income * 0.8);
+  const loans = toNumber(studentLoansInput, 200);
+  const housing = toNumber(housingInput, 1000);
+  const essentials = toNumber(essentialsInput, 300);
+  const lifestyle = toNumber(lifestyleInput, 300)
+  const future = toNumber(futureInput, 500)
 
-// --- Main render ---
-renderBtn.addEventListener("click", () => {
-  const month = monthselect.value;
-  const budget = budgetSelect.value;
-  const metric = metricSelect.value;
 
-  // Destroy old chart if it exists (common Chart.js gotcha)
-  if (currentChart) currentChart.destroy();
-
-  // Build chart config based on type
-  const config = buildConfig("doughnut", { month, budget, metric });
-
-});
-
-const config = buildConfig("doughnut", { month, budget, metric });
-const data = {
-  labels: regionSums ? Object.keys(regionSums) : [],
-  datasets: [{
-      label: "Revenue (USD)",
-      data: [10, 20, 30], // Initial data
-      borderColor: 'rgb(75, 192, 192)',
-      tension: 0.1
-  }]
-};
-const config = {
-  type: 'doughnut',
-  data: data,
-  options: {
-      scales: {
-          y: {
-              beginAtZero: true
-          }
-      }
-  }
-};
-const currentChart = new Chart(canvas, config);
-
-function updateChartData(month, budget) {
-  const rows = getRowsForbudget(budget).filter(r => r.month === month);
-
-  const regionSums = rows.reduce((acc, r) => {
-    const region = r.region;
-    const rev = r.revenue;
-    acc[region] = (acc[region] || 0) + rev;
-    return acc;
-  }, {});
-
-  const labels = Object.keys(regionSums);
-  const data = labels.map(l => regionSums[l]);
+  const labels = ['Housing', 'Essentials', 'Loans', 'Lifestyle', 'Future Proofing'];
+  const data = [housing, essentials, loans, lifestyle, future];
 
   return {
-    type: "doughnut",
+    type: 'doughnut',
     data: {
       labels,
-      datasets: [{ label: "Revenue (USD)", data }]
+      datasets: [{
+        label: 'Monthly (USD)',
+        data,
+        backgroundColor: [
+          '#8979FF', '#FF928A', '#3CC3DF', '#FFAE4C', '#537FF1'
+        ]
+      }]
     },
     options: {
       plugins: {
-        title: { display: true, text: `Revenue by region: ${budget} (${month})` }
+        title: { display: true, text: `Budget snapshot (${occuSelect ? occuSelect.value : 'N/A'})` }
       }
     }
   };
 }
 
-setInterval(updateChartData, 2000)
+// Initialize Chart.js chart if available
+function initChart() {
+  if (typeof Chart === 'undefined') {
+    console.warn('Chart.js not found - include Chart.js to render charts.');
+    return null;
+  }
+
+  const cfg = buildChartConfig();
+  currentChart = new Chart(canvas, cfg);
+  return currentChart;
+}
+
+// Update existing chart data in-place to keep animation smooth
+function refreshChart() {
+  const cfg = buildChartConfig();
+  if (!currentChart) {
+    currentChart = initChart();
+    return;
+  }
+
+  currentChart.data.labels = cfg.data.labels;
+  currentChart.data.datasets[0].data = cfg.data.datasets[0].data;
+  currentChart.options.plugins = cfg.options.plugins;
+  currentChart.update();
+}
+
+// Start a constant update loop every 2 seconds
+initChart();
+setInterval(refreshChart, 2000);
