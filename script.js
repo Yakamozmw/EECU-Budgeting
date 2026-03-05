@@ -10,6 +10,8 @@ const housingInput = document.getElementById('housing');
 const essentialsInput = document.getElementById('essentials');
 const lifestyleInput = document.getElementById('lifestyle')
 const futureInput = document.getElementById('future')
+const taxPopup = document.getElementById('taxPopup');
+const taxInfo = document.getElementById('taxInfoButton');
 
 let currentChart = null;
 
@@ -80,6 +82,14 @@ function refreshChart() {
   currentChart.update();
 }
 
-// Start a constant update loop every 2 seconds
+// Start a constant update loop every second
 initChart();
-setInterval(refreshChart, 2000);
+setInterval(refreshChart, 1000);
+
+taxInfo.addEventListener('mouseenter', (event) => {
+  taxPopup.showModal();
+});
+
+taxInfo.addEventListener('mouseleave', (event) => {
+  taxPopup.close();
+});
